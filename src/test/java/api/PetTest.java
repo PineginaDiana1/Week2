@@ -12,7 +12,7 @@ import static io.restassured.RestAssured.given;
 public class PetTest {
     private final static String URL = "https://petstore.swagger.io/v2/";
 
-    //Тест на получение 404 ошибки после удаления несуществующего объекта
+    //Тест на получение 404 ошибки после удаления несуществующего объекта DELETE pet/{petId}
     @Test
     public void unsuccessfulDeletePet(){
         Specification.installSpec(Specification.requestSpecification(URL), Specification.responseSpecification404());
@@ -24,7 +24,7 @@ public class PetTest {
                 .then().log().all();
     }
 
-    //Тест на успешный поиск по id (нестабильный)
+    //Тест на успешный поиск по id (нестабильный) GET pet/{petId}
     @Test
     public void findPetById(){
         Specification.installSpec(Specification.requestSpecification(URL), Specification.responseSpecification200());
@@ -44,7 +44,7 @@ public class PetTest {
         Assert.assertEquals(status, pets.getStatus());
     }
 
-    //Тест на успешный поиск по статусу
+    //Тест на успешный поиск по статусу GET pet/findByStatus
     @Test
     public void findPetByStatus(){
         Specification.installSpec(Specification.requestSpecification(URL), Specification.responseSpecification200());
@@ -62,7 +62,7 @@ public class PetTest {
         }
     }
 
-    //Тест на успешное добавление нового pet
+    //Тест на успешное добавление нового pet POST pet
     @Test
     public void addNewPet(){
         Specification.installSpec(Specification.requestSpecification(URL), Specification.responseSpecification200());
@@ -100,7 +100,7 @@ public class PetTest {
 
     }
 
-    //Тест на успешное обновление данных существующего pet
+    //Тест на успешное обновление данных существующего pet PUT pet
     @Test
     public void updateExistingPet(){
         Specification.installSpec(Specification.requestSpecification(URL), Specification.responseSpecification200());
@@ -137,7 +137,7 @@ public class PetTest {
         Assert.assertFalse(petResponse.getPhotoUrls().isEmpty());
     }
 
-    //Тест на успешную загрузку изображения к pet
+    //Тест на успешную загрузку изображения к pet POST pet/{petId}/uploadImage
     @Test
     public void uploadImageToPet(){
         Specification.installSpec(Specification.requestSpecification(URL), Specification.responseSpecification200());
@@ -154,7 +154,7 @@ public class PetTest {
                 .log().all();
     }
 
-    //Тест на получение 404 ошибки после обновления несуществующего pet
+    //Тест на получение 404 ошибки после обновления несуществующего pet POST pet/{petId}
     @Test
     public void updatePetWithFormData(){
         Specification.installSpec(Specification.requestSpecification(URL), Specification.responseSpecification404());
