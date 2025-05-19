@@ -1,6 +1,5 @@
 package api;
 
-import org.testng.Assert;
 import org.testng.annotations.Test;
 
 import java.io.File;
@@ -8,84 +7,89 @@ import java.util.List;
 
 
 import static io.restassured.RestAssured.given;
+import static org.assertj.core.api.Assertions.*;
 
 public class PetTest {
     private final static String URL = "https://petstore.swagger.io/v2/";
 
-    //Тест на получение 404 ошибки после удаления несуществующего объекта DELETE pet/{petId}
     @Test
-    public void unsuccessfulDeletePet(){
-        Specification.installSpec(Specification.requestSpecification(URL), Specification.responseSpecification404());
+    public void unsuccessfulDeletePet() {
+        Specification.installSpec(
+                Specification.requestSpecification(URL),
+                Specification.responseSpecification404());
 
         given()
-                .header("api_key", "special-key")
+                .spec(Specification2.getHeaderSpec())
                 .when()
                 .delete("pet/9223372036854776000")
                 .then().log().all();
     }
 
-    //Тест на успешный поиск по id (нестабильный) GET pet/{petId}
     @Test
-    public void findPetById(){
-        Specification.installSpec(Specification.requestSpecification(URL), Specification.responseSpecification200());
+    public void findPetById() {
+        Specification.installSpec(
+                Specification.requestSpecification(URL),
+                Specification.responseSpecification200());
         Long id = Long.valueOf(3);
         String status = "6000";
 
-        PetData pets = given()
-                .header("api_key", "special-key")
+        PetData pet = given()
+                .spec(Specification2.getHeaderSpec())
                 .when()
                 .get("pet/3")
                 .then().log().all()
                 .extract().as(PetData.class);
 
-        Assert.assertNotNull(pets.getName());
-        Assert.assertNotNull(pets.getId());
-        Assert.assertEquals(id, pets.getId());
-        Assert.assertEquals(status, pets.getStatus());
+        assertThat(pet)
+                .isNotNull()
+                .satisfies(p -> {
+                    assertThat(p.getName()).isNotNull();
+                    assertThat(p.getId()).isNotNull().isEqualTo(id);
+                    assertThat(p.getStatus()).isEqualTo(status);
+                });
     }
 
-    //Тест на успешный поиск по статусу GET pet/findByStatus
     @Test
-    public void findPetByStatus(){
-        Specification.installSpec(Specification.requestSpecification(URL), Specification.responseSpecification200());
+    public void findPetByStatus() {
+        Specification.installSpec(
+                Specification.requestSpecification(URL),
+                Specification.responseSpecification200());
         String status = "available";
 
         PetData[] pets = given()
-                .header("api_key", "special-key")
+                .spec(Specification2.getHeaderSpec())
                 .when()
                 .get("pet/findByStatus?status=" + status)
                 .then().log().all()
                 .extract().as(PetData[].class);
 
-        for (PetData pet : pets) {
-            Assert.assertEquals(status, pet.getStatus());
-        }
+        assertThat(pets)
+                .isNotEmpty()
+                .allSatisfy(pet ->
+                        assertThat(pet.getStatus()).isEqualTo(status)
+                );
     }
 
-    //Тест на успешное добавление нового pet POST pet
     @Test
-    public void addNewPet(){
-        Specification.installSpec(Specification.requestSpecification(URL), Specification.responseSpecification200());
+    public void addNewPet() {
+        Specification.installSpec(
+                Specification.requestSpecification(URL),
+                Specification.responseSpecification200());
 
-        PetData petRequest = new PetData();
-        petRequest.setId(0L);
-        petRequest.setName("doggie");
-        petRequest.setStatus("available");
-
-        PetData.Category category = new PetData.Category();
-        category.setId(0L);
-        category.setName("string");
-        petRequest.setCategory(category);
-
-        petRequest.setPhotoUrls(List.of("https://example.com/dog.jpg"));
-
-        PetData.Tag tag = new PetData.Tag();
-        tag.setId(0L);
-        tag.setName("cute");
-        petRequest.setTags(List.of(tag));
+        PetData petRequest = new PetData()
+                .setId(0L)
+                .setName("doggie")
+                .setStatus("available")
+                .setCategory(new Category()
+                        .setId(0L)
+                        .setName("string"))
+                .setPhotoUrls(List.of("https://example.com/dog.jpg"))
+                .setTags(List.of(new Tag()
+                        .setId(0L)
+                        .setName("cute")));
 
         PetData petResponse = given()
-                .header("api_key", "special-key")
+                .spec(Specification2.getHeaderSpec())
                 .body(petRequest)
                 .when()
                 .post("pet")
@@ -93,37 +97,36 @@ public class PetTest {
                 .log().all()
                 .extract().as(PetData.class);
 
-        Assert.assertEquals("doggie", petResponse.getName());
-        Assert.assertEquals("available", petResponse.getStatus());
-        Assert.assertNotNull(petResponse.getId());
-        Assert.assertFalse(petResponse.getPhotoUrls().isEmpty());
-
+        assertThat(petResponse)
+                .isNotNull()
+                .satisfies(p -> {
+                    assertThat(p.getName()).isEqualTo("doggie");
+                    assertThat(p.getStatus()).isEqualTo("available");
+                    assertThat(p.getId()).isNotNull();
+                    assertThat(p.getPhotoUrls()).isNotEmpty();
+                });
     }
 
-    //Тест на успешное обновление данных существующего pet PUT pet
     @Test
-    public void updateExistingPet(){
-        Specification.installSpec(Specification.requestSpecification(URL), Specification.responseSpecification200());
+    public void updateExistingPet() {
+        Specification.installSpec(
+                Specification.requestSpecification(URL),
+                Specification.responseSpecification200());
 
-        PetData petRequest = new PetData();
-        petRequest.setId(1L);
-        petRequest.setName("test");
-        petRequest.setStatus("sold");
-
-        PetData.Category category = new PetData.Category();
-        category.setId(0L);
-        category.setName("string");
-        petRequest.setCategory(category);
-
-        petRequest.setPhotoUrls(List.of("https://example.com/dog.jpg"));
-
-        PetData.Tag tag = new PetData.Tag();
-        tag.setId(0L);
-        tag.setName("cute");
-        petRequest.setTags(List.of(tag));
+        PetData petRequest = new PetData()
+                .setId(1L)
+                .setName("test")
+                .setStatus("sold")
+                .setCategory(new Category()
+                        .setId(0L)
+                        .setName("string"))
+                .setPhotoUrls(List.of("https://example.com/dog.jpg"))
+                .setTags(List.of(new Tag()
+                        .setId(0L)
+                        .setName("cute")));
 
         PetData petResponse = given()
-                .header("api_key", "special-key")
+                .spec(Specification2.getHeaderSpec())
                 .body(petRequest)
                 .when()
                 .put("pet")
@@ -131,21 +134,26 @@ public class PetTest {
                 .log().all()
                 .extract().as(PetData.class);
 
-        Assert.assertEquals("test", petResponse.getName());
-        Assert.assertEquals("sold", petResponse.getStatus());
-        Assert.assertEquals(petRequest.getId(), petResponse.getId());
-        Assert.assertFalse(petResponse.getPhotoUrls().isEmpty());
+        assertThat(petResponse)
+                .isNotNull()
+                .satisfies(p -> {
+                    assertThat(p.getName()).isEqualTo("test");
+                    assertThat(p.getStatus()).isEqualTo("sold");
+                    assertThat(p.getId()).isEqualTo(petRequest.getId());
+                    assertThat(p.getPhotoUrls()).isNotEmpty();
+                });
     }
 
-    //Тест на успешную загрузку изображения к pet POST pet/{petId}/uploadImage
     @Test
-    public void uploadImageToPet(){
-        Specification.installSpec(Specification.requestSpecification(URL), Specification.responseSpecification200());
+    public void uploadImageToPet() {
+        Specification.installSpec(
+                Specification.requestSpecification(URL),
+                Specification.responseSpecification200());
 
         File imageFile = new File("src/test/resources/dog.jpg");
 
         given()
-                .header("api_key", "special-key")
+                .spec(Specification2.getHeaderSpec())
                 .contentType("multipart/form-data")
                 .multiPart("file", imageFile)
                 .when()
@@ -154,24 +162,20 @@ public class PetTest {
                 .log().all();
     }
 
-    //Тест на получение 404 ошибки после обновления несуществующего pet POST pet/{petId}
     @Test
-    public void updatePetWithFormData(){
-        Specification.installSpec(Specification.requestSpecification(URL), Specification.responseSpecification404());
-
-
-        String updatedName = "test";
-        String updatedStatus = "sold";
+    public void updatePetWithFormData() {
+        Specification.installSpec(
+                Specification.requestSpecification(URL),
+                Specification.responseSpecification404());
 
         given()
-                .header("api_key", "special-key")
+                .spec(Specification2.getHeaderSpec())
                 .contentType("application/x-www-form-urlencoded")
-                .formParam("name", updatedName)
-                .formParam("status", updatedStatus)
+                .formParam("name", "test")
+                .formParam("status", "sold")
                 .when()
                 .post("pet/999999999999")
                 .then()
                 .log().all();
-
     }
 }

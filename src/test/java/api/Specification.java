@@ -20,12 +20,14 @@ public class Specification {
         public static ResponseSpecification responseSpecification200(){
             return new ResponseSpecBuilder()
                     .expectStatusCode(200)
+                    .expectContentType(ContentType.JSON)
                     .build();
         }
 
         public static ResponseSpecification responseSpecification404(){
             return new ResponseSpecBuilder()
                     .expectStatusCode(404)
+                    .expectContentType(ContentType.JSON)
                     .build();
         }
 
