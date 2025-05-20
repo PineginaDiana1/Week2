@@ -32,10 +32,8 @@ public class Specification {
         }
 
 
-        public static void installSpec(RequestSpecification request
-                , ResponseSpecification response
+        public static void installSpec(ResponseSpecification response
         ){
-            RestAssured.requestSpecification = request;
             RestAssured.responseSpecification = response;
         }
     }

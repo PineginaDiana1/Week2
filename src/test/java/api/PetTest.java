@@ -1,5 +1,7 @@
 package api;
 
+import io.restassured.RestAssured;
+import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
 import java.io.File;
@@ -12,10 +14,16 @@ import static org.assertj.core.api.Assertions.*;
 public class PetTest {
     private final static String URL = "https://petstore.swagger.io/v2/";
 
+    @BeforeClass
+    public static void setup() {
+        RestAssured.requestSpecification = Specification.requestSpecification(URL);
+
+    }
+
+
     @Test
     public void unsuccessfulDeletePet() {
         Specification.installSpec(
-                Specification.requestSpecification(URL),
                 Specification.responseSpecification404());
 
         given()
@@ -28,7 +36,6 @@ public class PetTest {
     @Test
     public void findPetById() {
         Specification.installSpec(
-                Specification.requestSpecification(URL),
                 Specification.responseSpecification200());
         Long id = Long.valueOf(3);
         String status = "6000";
@@ -52,7 +59,6 @@ public class PetTest {
     @Test
     public void findPetByStatus() {
         Specification.installSpec(
-                Specification.requestSpecification(URL),
                 Specification.responseSpecification200());
         String status = "available";
 
@@ -73,7 +79,6 @@ public class PetTest {
     @Test
     public void addNewPet() {
         Specification.installSpec(
-                Specification.requestSpecification(URL),
                 Specification.responseSpecification200());
 
         PetData petRequest = new PetData()
@@ -110,7 +115,6 @@ public class PetTest {
     @Test
     public void updateExistingPet() {
         Specification.installSpec(
-                Specification.requestSpecification(URL),
                 Specification.responseSpecification200());
 
         PetData petRequest = new PetData()
@@ -147,7 +151,6 @@ public class PetTest {
     @Test
     public void uploadImageToPet() {
         Specification.installSpec(
-                Specification.requestSpecification(URL),
                 Specification.responseSpecification200());
 
         File imageFile = new File("src/test/resources/dog.jpg");
@@ -165,7 +168,6 @@ public class PetTest {
     @Test
     public void updatePetWithFormData() {
         Specification.installSpec(
-                Specification.requestSpecification(URL),
                 Specification.responseSpecification404());
 
         given()
